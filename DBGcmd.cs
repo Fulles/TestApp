@@ -39,41 +39,52 @@ class Program
     {
         if (OperationType == OperationTypes.Read)
         {
-            Port.WriteLine("r" + Register);
+            Port.Write("r" + Register);
         }
         if (OperationType == OperationTypes.Write)
         {
-            Port.WriteLine("w" + Register + "*" + Value);
+            Port.Write("w" + Register + "*" + Value);
         }
     }
 
     private static Operation GetArguments(string[] args)
     {
-        if (args.Length == 4)
+        var operation = new Operation { };
+        try
         {
-            return new Operation
+            OperationTypes OperationType = (OperationTypes)Enum.Parse(typeof(OperationTypes), args[2]);
+            if (OperationType == OperationTypes.Read)
             {
-                Port = args[1],
-                OperationType = (OperationTypes)Enum.Parse(typeof(OperationTypes), args[2]),
-                Register = args[3],
-                
+               operation =  new Operation
+                {
+                    Port = args[1],
+                    OperationType = (OperationTypes)Enum.Parse(typeof(OperationTypes), args[2]),  ////////////////TO DO for (Myself)ANDRUSHA)
+                    Register = args[3],
+                };
+            }
 
-            };
+            if (OperationType == OperationTypes.Write)
+            {
+               operation = new Operation
+                {
+                    Port = args[1],
+                    OperationType = (OperationTypes)Enum.Parse(typeof(OperationTypes), args[2]),
+                    Register = args[3],
+                    Value = args[4]
+
+                };
+            }
         }
-        else
+        catch (Exception ex)
         {
-            return new Operation
-            {
-                Port = args[1],
-                OperationType = (OperationTypes)Enum.Parse(typeof(OperationTypes), args[2]),
-                Register = args[3],
-                Value = args[4]
-
-            };
+            string Error = ex.Message + "  " + DateTime.Now + "\n";
+            System.IO.File.AppendAllText(@"C:\Users\Fullen\Desktop\DBGcmd\DBGcmd\log.txt", Error);
+            Console.WriteLine("Enter correct type of operation (Read or Write)");
+            
         }
-        
+        return operation; 
     }
-
+           
     private static SerialPort TryGetPort(string name)
     {
         SerialPort Port = null;
@@ -84,9 +95,8 @@ class Program
         }
         catch (Exception ex)
         {
-            string Error = ex.Message + "  " + DateTime.Now;
-            System.IO.File.WriteAllText(@"C:\Users\Fullen\Desktop\DBGcmd\DBGcmd\log.txt", Error);
-            throw;
+            string Error = ex.Message + "  " + DateTime.Now + "\n";
+            System.IO.File.AppendAllText(@"C:\Users\Fullen\Desktop\DBGcmd\DBGcmd\log.txt ", Error );
             
         }
         return Port;
