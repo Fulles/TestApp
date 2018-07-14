@@ -2,89 +2,119 @@ using System;
 using System.IO.Ports;    //Nuget System.IO.Ports
 using System.Collections.Generic;
 
-class Emulator
+namespace All
 {
-    public static void Main()
+    class Register
     {
-        
-        
-        SerialPort Port = GetPort();
-        Console.ReadKey();
-        Port.Close();
-    }
-
-    private static SerialPort GetPort()
-    {
-        SerialPort Port = new SerialPort("COM3");
-        Port.Open();
-        Port.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
-        return Port;
-    }
-    private static void DataReceivedHandler(
-                       object sender,
-                       SerialDataReceivedEventArgs e)
-    {
-        string[] requests = { "r100000000", "r200000000", "r300000000", "r400000000",
+        int start = 0;
+        string[] Keys = { "r100000000", "r200000000", "r300000000", "r400000000",
                 "r500000000", "r600000000", "r700000000", "r800000000", "r900000000"};
-        string[] responses = { "ABCD1234", "ADSS3444", "QWER4321", "WRRRRERRE",
+        string[] Values = { "ABCD1234", "ADSS3444", "QWER4321", "WRRRRERRE",
                     "ASDFGHJKL", "33444", "TYUI4567", "ZXCV9876", "MNBV0000" };
-        List<string> ResponsesList = new List<string>(responses);
-        List<string> RequestsList = new List<string>(requests);
+        Dictionary<string, string> MyDictionary =
+           new Dictionary<string, string>();
+        public Dictionary<string, string> CreateDictionary()
+        {
+           
+            int counter = 0;
+            while (counter < Keys.Length)
+            {
+                MyDictionary.Add(Keys[counter], Values[counter]);
+                counter++;
+            }
+            return MyDictionary;
+        }
 
-        SerialPort sp = (SerialPort)sender;
-        string indata = sp.ReadExisting();
-        Console.WriteLine(indata);
-        WriteOrRead(indata, sp, ResponsesList, RequestsList);
-        
 
     }
-    private static void WriteOrRead(string indata, SerialPort sp, List<string> ResponsesList, List<string> RequestsList)
+
+
+    class Program
     {
-        int count = 0;
-        int MaxCount = 8;
-       
-        Console.WriteLine(ResponsesList.Count);
-        if (indata.StartsWith("w"))
+        
+        public static void Main()
         {
-            WriteToRegister(indata, ResponsesList, RequestsList);
-            MaxCount += 1;
-            Console.WriteLine(RequestsList[MaxCount -1]);
-            Console.WriteLine(ResponsesList[MaxCount -1]);
+            
+
+            SerialPort Port = GetPort();
+            Console.ReadKey();
+            Port.Close();
         }
-        if (indata.StartsWith("r"))
+
+        private static SerialPort GetPort()
         {
-            Console.WriteLine(MaxCount);
-            while (count < MaxCount )
+            SerialPort Port = new SerialPort("COM3");
+            Port.Open();
+            Port.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
+            return Port;
+        }
+
+        private static void DataReceivedHandler(
+                           object sender,
+                           SerialDataReceivedEventArgs e)
+        {
+
+            SerialPort sp = (SerialPort)sender;
+            string indata = sp.ReadExisting();
+            Console.WriteLine(indata);
+            WriteOrRead(indata, sp);
+
+        }
+
+        public static  Dictionary<string, string> WriteOrRead(string indata, SerialPort sp)
+        {
+            
+            Register register = new Register{};
+            Dictionary<string, string> Dictionary = register.CreateDictionary();
+            
+            if (indata.StartsWith("w"))
             {
-                if (indata.Contains(RequestsList[count]))
+                WriteToRegister(indata, Dictionary);
+            }
+            if (indata.StartsWith("r"))
+            {
+                try
                 {
-                    sp.WriteLine(ResponsesList[count]);
+                    sp.WriteLine(Dictionary[indata]);
                 }
-                count++;
+                catch
+                {
+                    Console.WriteLine("Enter correct key");
+                    
+                }
+            }
+            return Dictionary;
+        }
+
+ 
+        private static string GetValues(string indata)
+        {
+            char spliter = '*';
+            int startIndex = indata.IndexOf(spliter);
+            string value = indata.Remove(0, startIndex + 1);
+            return value;
+        }
+        private static string GetKeys(string indata)
+        {
+            char spliter = '*';
+            int startIndex = indata.IndexOf(spliter);
+            string value = indata.Remove(startIndex);
+            value = "r" + value.Remove(0, 1);
+            return value;
+        }
+        private static void WriteToRegister(string indata, Dictionary<string, string> Dictionary)
+        {
+            string Value = GetValues(indata);
+            string Key = GetKeys(indata);
+            try
+            {
+                Dictionary.Add(Key, Value);
+            }
+            catch
+            {
+                Console.WriteLine("The key is already used. We cant write it to the register");
             }
         }
 
-    }
-    private static string ValueForResponses(string indata)
-    {
-        char spliter = '*';
-        int startIndex = indata.IndexOf(spliter);
-        string value = indata.Remove(0, startIndex + 1);
-        return value;
-    }
-    private static string ValueForRequests(string indata)
-    {
-        char spliter = '*';
-        int startIndex = indata.IndexOf(spliter);
-        string value = indata.Remove(startIndex);
-        value = "r" + value.Remove(0, 1);
-        return value;
-    }
-    private static void WriteToRegister(string indata, List<string> ResponsesList, List<string> RequestsList)
-    {
-        string ValueForResponse = ValueForResponses(indata);
-        string ValueForRequest = ValueForRequests(indata);
-        ResponsesList.Add(ValueForResponse);
-        RequestsList.Add(ValueForRequest);
     }
 }
