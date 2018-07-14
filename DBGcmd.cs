@@ -58,7 +58,7 @@ class Program
                operation =  new Operation
                 {
                     Port = args[1],
-                    OperationType = (OperationTypes)Enum.Parse(typeof(OperationTypes), args[2]),  ////////////////TO DO for (Myself)ANDRUSHA)
+                    OperationType = (OperationTypes)Enum.Parse(typeof(OperationTypes), args[2]), 
                     Register = args[3],
                 };
             }
