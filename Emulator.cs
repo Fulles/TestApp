@@ -6,13 +6,15 @@ namespace All
 {
     class Register
     {
-        int start = 0;
+
         string[] Keys = { "r100000000", "r200000000", "r300000000", "r400000000",
                 "r500000000", "r600000000", "r700000000", "r800000000", "r900000000"};
         string[] Values = { "ABCD1234", "ADSS3444", "QWER4321", "WRRRRERRE",
                     "ASDFGHJKL", "33444", "TYUI4567", "ZXCV9876", "MNBV0000" };
         Dictionary<string, string> MyDictionary =
            new Dictionary<string, string>();
+
+
         public Dictionary<string, string> CreateDictionary()
         {
            
@@ -24,7 +26,10 @@ namespace All
             }
             return MyDictionary;
         }
-
+        public struct Dictionary
+        {
+            public Dictionary<string, string> dictionary;
+        }
 
     }
 
@@ -35,7 +40,6 @@ namespace All
         public static void Main()
         {
             
-
             SerialPort Port = GetPort();
             Console.ReadKey();
             Port.Close();
@@ -61,11 +65,13 @@ namespace All
 
         }
 
+        public static Register register = new Register { };
+        public static Dictionary<string, string> Dictionary = register.CreateDictionary();
+
         public static  Dictionary<string, string> WriteOrRead(string indata, SerialPort sp)
         {
-            
-            Register register = new Register{};
-            Dictionary<string, string> Dictionary = register.CreateDictionary();
+
+            Dictionary<string, string> MyDictionary = Dictionary;
             
             if (indata.StartsWith("w"))
             {
