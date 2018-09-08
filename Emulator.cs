@@ -34,7 +34,7 @@ namespace All
     }
 
 
-    class Program
+    class Emulator
     {
         
         public static void Main()
